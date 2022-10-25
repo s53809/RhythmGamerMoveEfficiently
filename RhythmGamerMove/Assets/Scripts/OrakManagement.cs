@@ -30,6 +30,11 @@ public class ArcadeCeneter
     public String name { get { return _name; } }
 
     private List<KindOfOrak> orakList;
+
+    public ArcadeCeneter()
+    {
+        orakList = new List<KindOfOrak>();
+    }
 }
 
 
