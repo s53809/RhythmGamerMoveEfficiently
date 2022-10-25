@@ -1,0 +1,22 @@
+fileFormatVersion: 2
+guid: b904e6684f6b6e24386d2c2ae609b318
+TrueTypeFontImporter:
+  externalObjects: {}
+  serializedVersion: 4
+  fontSize: 16
+  forceTextureCase: -2
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontNames:
+  - MICEGothic
+  fallbackFontReferences:
+  - {fileID: 12800000, guid: a3f73740f0cb8e84d89e36179a7237d4, type: 3}
+  customCharacters: 
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  useLegacyBoundsCalculation: 0
+  shouldRoundAdvanceValue: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
