@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class timeUnit
+public class TimeUnit
 {
     public Int32 hour { get; private set; }
     public Int32 minute { get; private set; }
@@ -15,23 +15,56 @@ public class timeUnit
             this.second = (this.second + second) % 60;
             this.minute += 1;
         }
+        else
+        {
+            this.second += second;
+        }
         if(this.minute + minute >= 60)
         {
             this.minute = (this.minute + minute) % 60;
             this.hour += 1;
         }
+        else
+        {
+            this.minute += minute;
+        }
         this.hour += hour;
     }
 
-    public timeUnit(Int32 second, Int32 minute = 0, Int32 hour = 0)
+    public TimeUnit(Int32 second, Int32 minute = 0, Int32 hour = 0)
     {
         this.second = second;
         this.minute = minute;
         this.hour = hour;
     }
 
-    #region 비교 연산자 오버로딩
-    public static Boolean operator > (timeUnit a, timeUnit b)
+    #region 연산자 오버로딩
+    
+    public static TimeUnit operator + (TimeUnit a, TimeUnit b)
+    {
+        TimeUnit temp = new TimeUnit(0, 0, 0);
+        if(a.second + b.second >= 60)
+        {
+            temp.second = (a.second + b.second) % 60;
+            temp.minute += 1;
+        }
+        else
+        {
+            temp.second = a.second + b.second;
+        }
+        if(temp.minute + a.minute + b.minute >= 60)
+        {
+            temp.minute = (temp.minute + a.minute + b.minute) % 60;
+            temp.hour += 1;
+        }
+        else
+        {
+            temp.minute = temp.minute + a.minute + b.minute;
+        }
+        temp.hour = temp.hour + a.hour + b.hour;
+        return temp;
+    }
+    public static Boolean operator > (TimeUnit a, TimeUnit b)
     {
         if(a.hour != b.hour)
         {
@@ -46,7 +79,7 @@ public class timeUnit
             return (a.second > b.second);
         }
     }
-    public static Boolean operator < (timeUnit a, timeUnit b)
+    public static Boolean operator < (TimeUnit a, TimeUnit b)
     {
         if (a.hour != b.hour)
         {
@@ -62,7 +95,7 @@ public class timeUnit
         }
     }
 
-    public static Boolean operator >= (timeUnit a, timeUnit b)
+    public static Boolean operator >= (TimeUnit a, TimeUnit b)
     {
         if (a.hour != b.hour)
         {
@@ -77,7 +110,7 @@ public class timeUnit
             return (a.second >= b.second);
         }
     }
-    public static Boolean operator <= (timeUnit a, timeUnit b)
+    public static Boolean operator <= (TimeUnit a, TimeUnit b)
     {
         if (a.hour != b.hour)
         {
@@ -93,7 +126,7 @@ public class timeUnit
         }
     }
 
-    public static Boolean operator == (timeUnit a, timeUnit b)
+    public static Boolean operator == (TimeUnit a, TimeUnit b)
     {
         if(a.hour == b.hour && a.minute == b.minute && a.second == b.second)
         {
@@ -104,7 +137,7 @@ public class timeUnit
             return false;
         }
     }
-    public static Boolean operator !=(timeUnit a, timeUnit b)
+    public static Boolean operator !=(TimeUnit a, TimeUnit b)
     {
         if (a.hour == b.hour && a.minute == b.minute && a.second == b.second)
         {
@@ -124,9 +157,15 @@ public class Station
     public List<Int32> line { get; private set; }
     public List<Station> adjNode { get; private set; }
     public List<Tuple<Int32, Int32>> transferList { get; private set; }
-    public List<timeUnit> transferTime { get; private set; }
+    public List<TimeUnit> transferTime { get; private set; }
     public Boolean haveArcadeCeneter { get; private set; }
     public ArcadeCeneter arcadeCenter { get; private set; }
+
+    public TimeUnit gotoArcade { get; private set; }
+
+    //다익스트라 전용 변수들
+    public Station prevNode;
+    public TimeUnit minTime;
 
     public Station(String name)
     {
@@ -134,12 +173,16 @@ public class Station
         line = new List<Int32>();
         adjNode = new List<Station>();
         transferList = new List<Tuple<Int32,Int32>>();
-        transferTime = new List<timeUnit>();
+        transferTime = new List<TimeUnit>();
         haveArcadeCeneter = false;
     }
 
     public void AddLine(Int32 N)
     {
+        foreach(Int32 s in line)
+        {
+            if(s == N) { return; }
+        }
         line.Add(N);
     }
 
@@ -148,7 +191,7 @@ public class Station
         adjNode.Add(sta);
     }
 
-    public void AddTransfer(Int32 startLine, Int32 endLine, timeUnit time)
+    public void AddTransfer(Int32 startLine, Int32 endLine, TimeUnit time)
     {
         Tuple<Int32, Int32> x = new Tuple<Int32, Int32>(startLine,endLine);
 
@@ -156,38 +199,11 @@ public class Station
         this.transferTime.Add(time);
     }
 
-    public void AddArcade(ArcadeCeneter center)
+    public void AddArcade(ArcadeCeneter center, TimeUnit time)
     {
         if (!haveArcadeCeneter) { haveArcadeCeneter = true; }
         arcadeCenter = center;
-    }
-}
-
-public class Node
-{
-    public Station curNode { get; private set; }
-    public Station prevNode { get; private set; }
-    public timeUnit minTime { get; private set; }
-
-    public Node(Station thisNode)
-    {
-        curNode = thisNode;
-        prevNode = null;
-        minTime = null;
-    }
-
-    public Boolean isMinTime(timeUnit minTime, Station compareNode)
-    {
-        if(this.minTime > minTime)
-        {
-            this.minTime = minTime;
-            prevNode = compareNode;
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        gotoArcade = time;
     }
 }
 public class StationManagement : MonoBehaviour
@@ -208,6 +224,7 @@ public class StationManagement : MonoBehaviour
             }
         }
     }
+    public Dictionary<String, Station> dic { get; private set; }
 
     private void Awake()
     {
@@ -219,9 +236,9 @@ public class StationManagement : MonoBehaviour
         {
             Destroy(this.gameObject);
         }
+        dic = new Dictionary<String, Station>();
     }
 
-    private Dictionary<String, Station> dic = new Dictionary<String, Station>();
     
     public Station AddStation(String key)
     {
@@ -232,7 +249,19 @@ public class StationManagement : MonoBehaviour
         }
         else
         {
-            return null;
+            return dic[key];
+        }
+    }
+
+    public Boolean AlreadyZonzae(String key)
+    {
+        if (dic.ContainsKey(key))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
         }
     }
 
