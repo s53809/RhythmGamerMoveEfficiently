@@ -22,13 +22,7 @@ public class SystemControl : MonoBehaviour
 
         Dijkstra.TamsekStart("상일동");
         Dijkstra.SearchArcade(myWishList);
-        Debug.Log("최종 역 이름 : " + Dijkstra.goalStation.name + " " + "오락실 이름 : " + Dijkstra.goalCenter.name);
-        Debug.Log(Dijkstra.goalStation.minTime.minute);
-        List<Station> temp = Dijkstra.ViewPath();
-        for(Int32 i = 0; i < temp.Count; i++)
-        {
-            Debug.Log(temp[i].name);
-        }
+        
     }
 
     

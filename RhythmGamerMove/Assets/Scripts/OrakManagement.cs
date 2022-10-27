@@ -73,7 +73,6 @@ public class OrakManagement : MonoBehaviour
         else
         {
             instance = this;
-            DontDestroyOnLoad(this.gameObject);
         }
         dic = new Dictionary<String, ArcadeCeneter>();
     }
